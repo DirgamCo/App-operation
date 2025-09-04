@@ -131,59 +131,57 @@ class ReportController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        //get request data
         $business_id = $request->session()->get('user.business_id');
+        $start_date = $request->get('start_date');
+        $end_date = $request->get('end_date');
+
+        //get locations with their business locations
+        $locations = Location::with(['businessLocations']);
+
         //Return the details in ajax call
         if ($request->ajax()) {
-            $start_date = $request->get('start_date');
-            $end_date = $request->get('end_date');
-
-            $location_id = $request->get('location_id');
-
-            $purchase_details = $this->transactionUtil->getPurchaseTotals(
-                $business_id,
-                $start_date,
-                $end_date,
-                $location_id
-            );
-            $sell_details = $this->transactionUtil->getSellTotals(
-                $business_id,
-                $start_date,
-                $end_date,
-                $location_id
-            );
-
-            $transaction_types = [
-                'purchase_return', 'sell_return',
-            ];
-
-            $transaction_totals = $this->transactionUtil->getTransactionTotals(
-                $business_id,
-                $transaction_types,
-                $start_date,
-                $end_date,
-                $location_id
-            );
-
-            $total_purchase_return_inc_tax = $transaction_totals['total_purchase_return_inc_tax'];
-            $total_sell_return_inc_tax = $transaction_totals['total_sell_return_inc_tax'];
-
-            $difference = [
-                'total' => $sell_details['total_sell_inc_tax'] - $total_sell_return_inc_tax - ($purchase_details['total_purchase_inc_tax'] - $total_purchase_return_inc_tax),
-                'due' => $sell_details['invoice_due'] - $purchase_details['purchase_due'],
-            ];
-
-            return ['purchase' => $purchase_details,
-                'sell' => $sell_details,
-                'total_purchase_return' => $total_purchase_return_inc_tax,
-                'total_sell_return' => $total_sell_return_inc_tax,
-                'difference' => $difference,
-            ];
+            return Datatables::of($locations)
+                 ->editColumn('location', fn($row) => '<span>'.$row->name.'</span>')
+                 ->editColumn('business_locations', fn($row) => '<span>'.$row->name.'</span>')
+                 ->editColumn('total_sales', fn($row) => '<span>0</span>')
+                 ->editColumn('discount', fn($row) => '<span>0</span>')
+                 ->rawColumns(['location', 'business_locations', 'total_sales', 'discount'])
+                 ->make(true);
         }
+        
+        //calculate sell details for each individual location
+        foreach($locations as $location){
+            foreach($location->businessLocations as $businessLocation){
+                //get total sell details
+                $sell_details = $this->transactionUtil->getSellTotals(
+                    $business_id,
+                    $start_date,
+                    $end_date,
+                    $businessLocation->id
+                );
+                //get total discount from transaction total utils
+                $transaction_types = [
+                'sell',
+                ];
+                $transaction_totals = $this->transactionUtil->getTransactionTotals(
+                    $business_id,
+                    $transaction_types,
+                    $start_date,
+                    $end_date,
+                    $businessLocation->id
+            );
 
-        $locations = Location::with(['city'])->withCount(['businessLocations'])
-        ->latest()->paginate(10);
-
-        return view('report.custom_report-1', ['locations' => $locations]);                                                                           
+            //adding total sell and total discount to each business location
+                $businessLocation->total_sell = $sell_details;
+                $businessLocation->total_discount = $transaction_totals['total_sell_discount'];
+            };
+        };
+        
+        //send blade template response with all locations
+        return view('report.custom_report-1', ['locations' => $locations]);
+       
+                                                                                
     }
  /**    -------------------------------------------------------------------------- */
 
@@ -2707,7 +2705,6 @@ class ReportController extends Controller
     }
 
     /**
-     * Shows tables report
      *
      * @return \Illuminate\Http\Response
      */

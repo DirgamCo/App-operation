@@ -14,18 +14,8 @@
 
 <section class="content">
         <div class="row no-print">
-        <div class="col-md-3 col-md-offset-7 col-xs-6">
-            <div class="input-group">
-                <span class="input-group-addon bg-light-blue"><i class="fa fa-map-marker"></i></span>
-                 <select class="form-control select2" id="custom_report_location_filter">
-                    @foreach($locations as $key => $value)
-                        <option value="{{ $key }}">{{ $value->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-        <div class="col-md-2 col-xs-6">
-            <div class="form-group pull-right">
+        {{-- <div class="col-md-2 col-xs-6">
+            <div class="form-group pull-left">
                 <div class="input-group">
                   <button type="button" class="tw-dw-btn tw-dw-btn-primary tw-text-white tw-dw-btn-sm" id="custom_report_date_filter">
                     <span>
@@ -35,22 +25,63 @@
                   </button>
                 </div>
             </div>
-        </div>
+        </div> --}}
     </div>
     <br /> <br />
-    <div class="row">
+    {{-- <div class=" tw-transition-all lg:tw-col-span-1 tw-duration-200 tw-bg-white tw-shadow-sm tw-rounded-xl tw-ring-1 hover:tw-shadow-md tw-ring-gray-200">
+        <div class="tw-p-4 sm:tw-p-5">
+            <div class="tw-flow-root tw-mt-5 tw-border-b tw-border-gray-200">
+                <div class="tw-mx-4 tw--my-2 tw-overflow-x-auto sm:tw--mx-5">
+                    <div class="tw-inline-block tw-min-w-full tw-py-2 tw-align-middle sm:tw-px-5">
+                        <table class="table table-bordered table-striped" id="">
+                            <thead>
+                                <tr>
+                                    <th>{{ __('lang_v1.area') }}</th>
+                                    <th>{{ __('purchase.business_location') }}</th>
+                                    <th>{{ __('sale.sale') }}</th>
+                                    <th>{{ __('sale.discount') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($locations as $location)
+                                    @foreach($location->businessLocations as $bl)
+                                        <tr>
+                                        <td>{{ $location->name }}</td>
+                                        <td>{{ $bl->name }}</td>
+                                        <td>{{ !empty ($bl->total_sell['total_sell_exc_tax']) ? number_format($bl->total_sell['total_sell_exc_tax']) : 0 }}</td>
+                                        <td>{{ !empty ($bl->total_discount) ? number_format($bl->total_discount) : 0 }}</td>
+                                    </tr>
+                                    @endforeach
+                                    @empty
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">
+                                            {{ __('No Cities Found') }}
+                                        </td>
+                                    </tr>
+                                    @endforelse
+                                        {{ $locations->links() }}
+                                </tbody>
+                        </table>
+
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> --}}
+
+       <div class="row">
             <div class="col-md-12">
                 @component('components.widget', ['class' => 'box-primary'])
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped" id="custom_report_table">
                             <thead>
                                 <tr>
-                                    <th>&nbsp;</th>
-                                    <th>@lang('lang_v1.area')</th>
-                                    <th>@lang('purchase.business_location')</th>
-                                    <th>@lang('sale.sale')</th>
-                                    <th>@lang('sale.discount')</th>
-                                    <th>@lang('messages.action')</th>
+                                    <th>{{ __('lang_v1.area') }}</th>
+                                    <th>{{ __('purchase.business_location') }}</th>
+                                    <th>{{ __('sale.sale') }}</th>
+                                    <th>{{ __('sale.discount') }}</th>
                                 </tr>
                             </thead>
                             <tfoot>
@@ -66,7 +97,6 @@
                 @endcomponent
             </div>
         </div>
-
     
 </section>
 
