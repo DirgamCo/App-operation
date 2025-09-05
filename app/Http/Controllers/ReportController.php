@@ -139,13 +139,15 @@ class ReportController extends Controller
         $end_date = $request->get('end_date');
         $location_id = $request->get('location_id');
 
-        //get locations with their business locations if their is location id filter
+        //get locations with their business locations 
         $query = Location::with('businessLocations');
 
+        //if their is location id filter
         if($location_id){
             $query->where('id', $location_id);
         }
 
+        //paginate
         $locations = $query->paginate(3);
         //calculate sell details for each individual location
         foreach($locations as $location){
