@@ -17,20 +17,20 @@ $(document).ready(function () {
     }
     //Custom report report -------------------------------------------------------------------------
     //Date range as a button
-    // if ($('#custom_report_date_filter').length == 1) {
-    //     $('#custom_report_date_filter').daterangepicker(dateRangeSettings, function (start, end) {
-    //         $('#custom_report_date_filter span').html(
-    //             start.format(moment_date_format) + ' ~ ' + end.format(moment_date_format)
-    //         );
-    //         updateCustomReport();
-    //     });
-    //     $('#custom_report_date_filter').on('cancel.daterangepicker', function (ev, picker) {
-    //         $('#custom_report_date_filter').html(
-    //             '<i class="fa fa-calendar"></i> ' + LANG.filter_by_date
-    //         );
-    //     });
-    //     updateCustomReport();
-    // }
+    if ($('#custom_report_date_filter').length == 1) {
+        $('#custom_report_date_filter').daterangepicker(dateRangeSettings, function (start, end) {
+            $('#custom_report_date_filter span').html(
+                start.format(moment_date_format) + ' ~ ' + end.format(moment_date_format)
+            );
+            updateCustomReport();
+        });
+        $('#custom_report_date_filter').on('cancel.daterangepicker', function (ev, picker) {
+            $('#custom_report_date_filter').html(
+                '<i class="fa fa-calendar"></i> ' + LANG.filter_by_date
+            );
+        });
+        updateCustomReport();
+    }
 
     if ($('#scr_date_filter').length == 1) {
         $('#scr_date_filter').daterangepicker(dateRangeSettings, function (start, end) {
@@ -391,6 +391,10 @@ $(document).ready(function () {
     $('#purchase_sell_location_filter').change(function () {
         updatePurchaseSell();
     });
+    //------------custom report filter ----------------
+    $('#custom_report_location_filter').on('select2:select', function () {
+    updateCustomReport();
+});
 
     //Stock Adjustment Report
     if ($('#stock_adjustment_date_filter').length == 1) {
@@ -2248,57 +2252,88 @@ function updatePurchaseSell() {
         },
     });
 }
-// function updateCustomReport() {
-//     var start = $('#custom_report_date_filter')
-//         .data('daterangepicker')
-//         .startDate.format('YYYY-MM-DD');
-//     var end = $('#custom_report_date_filter').data('daterangepicker').endDate.format('YYYY-MM-DD');
 
-//     var data = {
-//         start_date: start,
-//         end_date: end,
-//     };
+//---main function to update the custom report table data----------------
+function updateCustomReport(page = 1) {
+    var start = $('#custom_report_date_filter')
+        .data('daterangepicker')
+        .startDate.format('YYYY-MM-DD');
+    var end = $('#custom_report_date_filter').data('daterangepicker').endDate.format('YYYY-MM-DD');
 
-//     var loader = __fa_awesome();
-//     $('.total_purchase').html(loader);
-//     $('.purchase_due').html(loader);
-//     $('.total_sell').html(loader);
-//     $('.invoice_due').html(loader);
-//     $('.purchase_return_inc_tax').html(loader);
-//     $('.total_sell_return').html(loader);
+    var location_id = $('#custom_report_location_filter').val();
 
-//     $.ajax({
-//         method: 'GET',
-//         url: '/reports/custom-report',
-//         dataType: 'json',
-//         data: data,
-//         success: function (data) {
-//             $('.total_purchase').html(
-//                 __currency_trans_from_en(data.purchase.total_purchase_exc_tax, true)
-//             );
-//             $('.purchase_inc_tax').html(
-//                 __currency_trans_from_en(data.purchase.total_purchase_inc_tax, true)
-//             );
-//             $('.purchase_due').html(__currency_trans_from_en(data.purchase.purchase_due, true));
+    var data = {
+        start_date: start,
+        end_date: end,
+        location_id: location_id,
+        page: page,
+    };
 
-//             $('.total_sell').html(__currency_trans_from_en(data.sell.total_sell_exc_tax, true));
-//             $('.sell_inc_tax').html(__currency_trans_from_en(data.sell.total_sell_inc_tax, true));
-//             $('.sell_due').html(__currency_trans_from_en(data.sell.invoice_due, true));
-//             $('.purchase_return_inc_tax').html(
-//                 __currency_trans_from_en(data.total_purchase_return, true)
-//             );
-//             $('.total_sell_return').html(__currency_trans_from_en(data.total_sell_return, true));
+    //custom loader
+    var table_body = document.getElementById("custom_report_table_body");
+    var loader = `<tr><td colspan="4" class="text-center"><i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i></td></tr>`;
+    table_body.innerHTML = loader;
 
-//             $('.sell_minus_purchase').html(__currency_trans_from_en(data.difference.total, true));
-//             __highlight(data.difference.total, $('.sell_minus_purchase'));
+    $.ajax({
+        method: 'GET',
+        url: '/reports/custom-report',
+        dataType: 'json',
+        data: data,
+        success: function (data) {
+            var all_rows;
+            data.locations.data.forEach(function (location) { 
+                location.business_locations.forEach(function (bl) {
+                    var row = '<tr>';
+                    row += '<td>' + location.name + '</td>';
+                    row += '<td>' + bl.name + '</td>';
+                    row += `<td> ${ bl.total_sell['total_sell_exc_tax'] ? Number(bl.total_sell['total_sell_exc_tax']).toLocaleString() : 0 } </td>`;
+                    row += `<td> ${ bl.total_discount ? Number(bl.total_discount).toLocaleString() : 0 } </td>`;
+                    row += '</tr>';
+                
+                    //append the rows
+                    all_rows = all_rows ? all_rows + row : row;
+                });
+             });
 
-//             $('.difference_due').html(__currency_trans_from_en(data.difference.due, true));
-//             __highlight(data.difference.due, $('.difference_due'));
+            //send table body data
+            table_body.innerHTML = all_rows;
 
-//             // $('.purchase_due').html( __currency_trans_from_en(data.purchase_due, true));
-//         },
-//     });
-// }
+            //render pagination links
+            renderPagination(data.locations.links);
+
+        },
+    });
+}
+
+function renderPagination(links) {
+    let html = '<ul class="pagination">';
+
+    links.forEach(link => {
+        html += `
+            <li class="page-item ${link.active ? 'active' : ''} ${!link.url ? 'disabled' : ''}">
+                <a href="#" class="page-link" data-page="${link.url ? new URL(link.url).searchParams.get('page') : ''}">
+                    ${link.label}
+                </a>
+            </li>
+        `;
+    });
+
+    html += '</ul>';
+    document.getElementById("pagination_links").innerHTML = html;
+
+    // Attach click handler to Ajax paginate
+    document.querySelectorAll("#pagination_links .page-link").forEach(el => {
+        el.addEventListener("click", function (e) {
+            e.preventDefault();
+            let page = this.dataset.page;
+            if (page) {
+                updateCustomReport(page);
+            }
+        });
+    });
+}
+
+//----------------------------------end custom report table data----------------
 
 function get_stock_details(rowData) {
     var div = $('<div/>').addClass('loading').text('Loading...');

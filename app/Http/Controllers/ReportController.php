@@ -131,25 +131,22 @@ class ReportController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        //get request data
+        //Return the details in ajax call
+        if ($request->ajax()) {
+            //get request data
         $business_id = $request->session()->get('user.business_id');
         $start_date = $request->get('start_date');
         $end_date = $request->get('end_date');
+        $location_id = $request->get('location_id');
 
-        //get locations with their business locations
-        $locations = Location::with(['businessLocations']);
+        //get locations with their business locations if their is location id filter
+        $query = Location::with('businessLocations');
 
-        //Return the details in ajax call
-        if ($request->ajax()) {
-            return Datatables::of($locations)
-                 ->editColumn('location', fn($row) => '<span>'.$row->name.'</span>')
-                 ->editColumn('business_locations', fn($row) => '<span>'.$row->name.'</span>')
-                 ->editColumn('total_sales', fn($row) => '<span>0</span>')
-                 ->editColumn('discount', fn($row) => '<span>0</span>')
-                 ->rawColumns(['location', 'business_locations', 'total_sales', 'discount'])
-                 ->make(true);
+        if($location_id){
+            $query->where('id', $location_id);
         }
-        
+
+        $locations = $query->paginate(3);
         //calculate sell details for each individual location
         foreach($locations as $location){
             foreach($location->businessLocations as $businessLocation){
@@ -176,10 +173,16 @@ class ReportController extends Controller
                 $businessLocation->total_sell = $sell_details;
                 $businessLocation->total_discount = $transaction_totals['total_sell_discount'];
             };
-        };
+         };
+
+         return ['locations' => $locations];
+
+        }
+
+        $all_locations = Location::all();
         
         //send blade template response with all locations
-        return view('report.custom_report-1', ['locations' => $locations]);
+        return view('report.custom_report-1', ['all_locations' => $all_locations]);
        
                                                                                 
     }
