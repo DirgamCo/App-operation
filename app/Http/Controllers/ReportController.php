@@ -127,7 +127,7 @@ class ReportController extends Controller
      * @return \Illuminate\Http\Response                                                |
      */                                                                               /*| */
     public function getCustomReport(Request $request) {                               /*| */
-        if (! auth()->user()->hasRole('Admin#' . session('business.id'))) {
+        if (! auth()->user()->can('purchase_n_sell_report.view')) {
             abort(403, 'Unauthorized action.');
         }
 

@@ -683,6 +683,11 @@ class AdminSidebarMenu
                                 __('lang_v1.sell_payment_report'),
                                 ['icon' => '', 'active' => request()->segment(2) == 'sell-payment-report']
                             );
+                            $sub->url(
+                                action([\App\Http\Controllers\ReportController::class, 'getCustomReport']),
+                                __('lang_v1.area_sales_report'),
+                                ['icon' => '', 'active' => request()->segment(2) == 'custom-report']
+                            );
                         }
                         if (in_array('expenses', $enabled_modules) && auth()->user()->can('expense_report.view')) {
                             $sub->url(
@@ -736,11 +741,6 @@ class AdminSidebarMenu
                         }
 
                         if ($is_admin) {
-                            $sub->url(
-                                action([\App\Http\Controllers\ReportController::class, 'getCustomReport']),
-                                __('lang_v1.area_sales_report'),
-                                ['icon' => '', 'active' => request()->segment(2) == 'custom-report']
-                            );
                             $sub->url(
                                 action([\App\Http\Controllers\ReportController::class, 'activityLog']),
                                 __('lang_v1.activity_log'),
