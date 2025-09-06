@@ -177,7 +177,7 @@ class ReportController extends Controller
             };
          };
 
-         return ['locations' => $locations];
+         return ['locations' => $locations, 'totals' => $transaction_totals];
 
         }
 

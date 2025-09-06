@@ -52,26 +52,15 @@
                                     <th>{{ __('sale.discount') }}</th>
                                 </tr>
                             </thead>
-                            <tbody id="custom_report_table_body">
-                                {{-- @forelse ($locations as $location)
-                                    @foreach($location->businessLocations as $bl)
-                                        <tr>
-                                        <td>{{ $location->name }}</td>
-                                        <td>{{ $bl->name }}</td>
-                                        <td>{{ !empty ($bl->total_sell['total_sell_exc_tax']) ? number_format($bl->total_sell['total_sell_exc_tax']) : 0 }}</td>
-                                        <td>{{ !empty ($bl->total_discount) ? number_format($bl->total_discount) : 0 }}</td>
-                                    </tr>
-                                    @endforeach
-                                    @empty
-                                    <tr>
-                                        <td colspan="3" class="text-center text-muted">
-                                            {{ __('No Cities Found') }}
-                                        </td>
-                                    </tr>
-                                    @endforelse --}}
-                                        {{-- {{ $locations->links() }} --}}
-                                </tbody>
+                            <tbody id="custom_report_table_body"> </tbody>
                         </table>
+                        <div class="bg-gray font-17 text-right p-10">
+                            <span class="text-left"><strong>@lang('sale.total'):</strong></span>
+                            <span class="p-10" id="total_sales"></span>
+                            <span class="p-15" id="total_discount"></span>
+                        </div>
+                        
+                        
                         <br />
                         {{-- Pagination links --}}
                         <div id="pagination_links"></div>

@@ -2281,6 +2281,9 @@ function updateCustomReport(page = 1) {
         data: data,
         success: function (data) {
             var all_rows;
+            var total_sell = 0;
+            var total_discount = 0;
+console.log(data.totals);
             data.locations.data.forEach(function (location) { 
                 location.business_locations.forEach(function (bl) {
                     var row = '<tr>';
@@ -2290,6 +2293,14 @@ function updateCustomReport(page = 1) {
                     row += `<td> ${ bl.total_discount ? Number(bl.total_discount).toLocaleString() : 0 } </td>`;
                     row += '</tr>';
                 
+                    //sum sales and discount
+                    total_sell += parseFloat(bl.total_sell['total_sell_exc_tax']) || 0;
+                    total_discount += parseFloat(bl.total_discount) || 0;
+
+                    //update total sales and discount
+                    document.getElementById("total_sales").innerText = `اجمالي المبيعات: ${total_sell.toLocaleString()}`;
+                    document.getElementById("total_discount").innerText = `اجمالي الخصم: ${total_discount.toLocaleString()}`;
+
                     //append the rows
                     all_rows = all_rows ? all_rows + row : row;
                 });
