@@ -148,7 +148,7 @@ class ReportController extends Controller
         }
 
         //paginate
-        $locations = $query->paginate(3);
+        $locations = $query->paginate(5);
         //calculate sell details for each individual location
         foreach($locations as $location){
             foreach($location->businessLocations as $businessLocation){
